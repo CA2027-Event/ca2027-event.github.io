@@ -309,6 +309,31 @@
   .about h5{font:600 .85rem/1 var(--display);color:var(--cyan);margin:0 0 .45rem}
   .about p{margin:0}
   .hud-actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem}
+  .roadmap{grid-column:1/-1;border-top:1px solid var(--edge);padding-top:1.1rem}
+  .roadmap h4{font:600 1.05rem/1.3 var(--display);margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+  .roadmap .hint{color:var(--muted);font-size:.88rem;margin:.25rem 0 0}
+  .rm-track{position:relative;display:grid;margin:1.2rem 0 .9rem}
+  .rm-line,.rm-fill{position:absolute;top:1.05rem;height:2px;border-radius:2px}
+  .rm-line{background:var(--edge-2)}
+  .rm-fill{background:linear-gradient(90deg,var(--blue),var(--cyan));box-shadow:0 0 10px var(--cyan);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .rm-node{position:relative;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:0 .1rem;color:var(--muted);min-height:2.75rem}
+  .rm-dot{width:2.1rem;height:2.1rem;border-radius:50%;border:2px solid var(--edge-2);background:var(--bg);display:grid;place-items:center;transition:transform .25s,box-shadow .25s,background .25s}
+  .rm-dot i{width:.55rem;height:.55rem;border-radius:50%;background:var(--edge-2)}
+  .rm-node.done .rm-dot{border-color:var(--cyan)} .rm-node.done .rm-dot i{background:var(--cyan)}
+  .rm-node.now .rm-dot{border-color:var(--cyan);box-shadow:0 0 0 0 rgba(63,224,208,.6);animation:pulse 2s infinite} .rm-node.now .rm-dot i{background:var(--cyan)}
+  .rm-node[aria-pressed="true"] .rm-dot{transform:scale(1.18);background:var(--cyan);box-shadow:0 0 22px var(--cyan)}
+  .rm-node[aria-pressed="true"] .rm-dot i{background:#031A1C}
+  .rm-when{font:700 .88rem/1 var(--display);color:var(--text)}
+  .rm-title{font:500 .76rem/1.2 var(--body);text-align:center}
+  .rm-node[aria-pressed="true"] .rm-when{color:var(--cyan)}
+  .rm-detail{border:1px solid rgba(63,224,208,.45);border-radius:12px;padding:.95rem 1.05rem;background:rgba(63,224,208,.05);
+    box-shadow:0 0 30px -16px var(--cyan);animation:rise .35s cubic-bezier(.2,.8,.2,1)}
+  .rm-detail .top{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:.35rem}
+  .rm-detail b{font:600 1.05rem/1.3 var(--display)}
+  .rm-detail p{margin:0}
+  .st{font:600 .72rem/1 var(--display);padding:.3rem .5rem;border-radius:2rem}
+  .st.done{background:rgba(63,224,208,.14);color:var(--cyan)} .st.now{background:rgba(91,134,255,.2);color:#B9CCFF} .st.next{background:rgba(255,255,255,.07);color:var(--muted)}
+  @media (max-width:380px){ .rm-title{display:none} }
   .hud-nav{display:flex;justify-content:space-between;gap:.6rem;padding:0 1.2rem 1.2rem}
 
   /* ---------- CA CHALLENGE ---------- */
@@ -507,6 +532,7 @@
         <div class="about"><h5>About</h5><p id="sheet-desc"></p></div>
         <div class="hud-actions" id="sheet-actions"></div>
       </div>
+      <div class="roadmap" id="sheet-roadmap" hidden></div>
     </div>
     <div class="hud-nav">
       <button class="btn ghost sm" id="sheet-prev">Previous booth</button>
@@ -613,7 +639,15 @@ const FLOORS = [
   ]},
   { level:"Level 4", w:12, d:9, booths:[
     { name:"AI Office Roadmap", x:0.8, y:3.1, w:3.6, d:2.8, h:1.6, quest:true, sample:true,
-      desc:"Short description of the exhibit goes here. What visitors will see and try." },
+      desc:"Short description of the exhibit goes here. What visitors will see and try.",
+      // status: done | now | next.  Sample content below: replace with the real roadmap.
+      timeline:[
+        { when:"2024",  title:"Explore",      status:"done", detail:"Find where AI can help officers in their daily work, and gather ideas from the ground." },
+        { when:"2025",  title:"Pilot",        status:"done", detail:"Test a small number of AI tools with selected units, and learn what works and what doesn't." },
+        { when:"2026",  title:"Scale",        status:"now",  detail:"Roll out proven tools to more units, with training and support for officers." },
+        { when:"2027",  title:"Embed",        status:"next", detail:"Make AI part of everyday processes, with clear guidelines and safeguards." },
+        { when:"2028+", title:"Next horizon", status:"next", detail:"Explore new areas where AI can support safety and rehabilitation." }
+      ] },
     { name:"NCPR",              x:7.6, y:3.1, w:3.6, d:2.8, h:1.3, quest:true, sample:true,
       desc:"Short description of the exhibit goes here. What visitors will see and try." }
   ]}
@@ -797,21 +831,17 @@ document.querySelectorAll(".ftext").forEach((el,i) => { el.textContent = (EVENT.
     if (b.f) for (let z=b.z+b.f; z<b.z+b.h-.05; z+=b.f){ const r = c.map(([x,y]) => P(x,y,z,yaw)); for (let k=0;k<4;k++) g += L(r[k], r[(k+1)%4]); }
     return g;
   }
-  // write the venue label on whichever face of the tower is turned towards us
-  const faces = [ {a:[0,0], b:[6,0], n:[0,-1]}, {a:[6,0], b:[6,6], n:[1,0]}, {a:[6,6], b:[0,6], n:[0,1]}, {a:[0,6], b:[0,0], n:[-1,0]} ];
+  // the venue label is fixed to the front face and turns with the building; it fades as that face turns away
+  const FRONT = {a:[0,6], b:[6,6], n:[0,1]};
   function facade(yaw){
     const lbl = EVENT.venueLabel || []; if (!lbl.length) return "";
-    let best = null, bv = -1;
-    faces.forEach(f => { const v = f.n[0]*Math.sin(yaw) + f.n[1]*Math.cos(yaw); if (v > bv){ bv = v; best = f; } });
-    if (bv < .15) return "";
-    let A = best.a, B = best.b;
-    if (P(A[0],A[1],0,yaw)[0] > P(B[0],B[1],0,yaw)[0]) [A,B] = [B,A];      // keep the text reading left to right
-    const zTop = 10.1, o = P(A[0],A[1],zTop,yaw), e = P(B[0],B[1],zTop,yaw), up = P(A[0],A[1],zTop+1,yaw);
-    const len = Math.hypot(B[0]-A[0], B[1]-A[1]);
+    const facing = FRONT.n[0]*Math.sin(yaw) + FRONT.n[1]*Math.cos(yaw);
+    const op = Math.max(0, Math.min(1, (facing - .08)/.4)); if (op <= 0) return "";
+    const A = FRONT.a, B = FRONT.b, zTop = 10.1;
+    const o = P(A[0],A[1],zTop,yaw), e = P(B[0],B[1],zTop,yaw), up = P(A[0],A[1],zTop+1,yaw), len = 6;
     const ux = (e[0]-o[0])/len, uy = (e[1]-o[1])/len, vx = o[0]-up[0], vy = o[1]-up[1];
-    const op = Math.min(1, (bv-.15)/.35).toFixed(2);
-    return `<g transform="matrix(${ux.toFixed(3)} ${uy.toFixed(3)} ${vx.toFixed(3)} ${vy.toFixed(3)} ${o[0].toFixed(1)} ${o[1].toFixed(1)})" opacity="${op}">
-      <text x="3" y="1.35" text-anchor="middle" font-family="Sora,sans-serif" font-weight="700" font-size="1.5" fill="#E9FFFC" style="filter:drop-shadow(0 0 .3px #3FE0D0)">${esc(lbl[0]||"")}</text>
+    return `<g transform="matrix(${ux.toFixed(3)} ${uy.toFixed(3)} ${vx.toFixed(3)} ${vy.toFixed(3)} ${o[0].toFixed(1)} ${o[1].toFixed(1)})" opacity="${op.toFixed(2)}">
+      <text x="3" y="1.4" text-anchor="middle" font-family="Sora,sans-serif" font-weight="700" font-size="1.5" fill="#E9FFFC">${esc(lbl[0]||"")}</text>
       ${lbl[1] ? `<text x="3" y="2.2" text-anchor="middle" font-family="Sora,sans-serif" font-weight="600" font-size=".5" fill="#9FF3EA">${esc(lbl[1])}</text>` : ""}
     </g>`;
   }
@@ -986,6 +1016,7 @@ function fillSheet(){
   $("sheet-badges").innerHTML = (b.quest?'<span class="badge">Quest point: scan the code here</span>':"") + (b.sample?'<span class="badge sample">Sample text</span>':"");
   $("sheet-desc").textContent = b.desc;
   $("sheet-actions").innerHTML = b.quest ? actButton("quest","btn sm") : "";
+  renderRoadmap(b);
   $("sheet-prev").disabled = F.booths.length < 2; $("sheet-next").disabled = F.booths.length < 2;
   cancelAnimationFrame(spinRaf);
   const src = b.image ? (IMAGES[b.image] || b.image) : "";
@@ -997,6 +1028,32 @@ function fillSheet(){
     spinStart = performance.now(); drawSpin(spinStart);
   }
   const panel = document.querySelector(".hud-panel"); panel.style.animation = "none"; panel.offsetHeight; panel.style.animation = "";
+}
+/* clickable roadmap timeline (for booths that have one) */
+const ST_LABEL = {done:"Done", now:"In progress", next:"Planned"};
+let rmSel = 0;
+function renderRoadmap(b){
+  const box = $("sheet-roadmap"), tl = b.timeline;
+  if (!tl || !tl.length){ box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  rmSel = Math.max(0, tl.findIndex(t => t.status === "now"));
+  const n = tl.length, edge = 50/n;
+  box.innerHTML = `<h4>Roadmap${b.sample?' <span class="badge sample">Sample</span>':""}</h4>
+    <p class="hint">Tap a point on the timeline to read more.</p>
+    <div class="rm-track" style="grid-template-columns:repeat(${n},1fr)">
+      <div class="rm-line" style="left:${edge}%;right:${edge}%"></div>
+      <div class="rm-fill" id="rm-fill" style="left:${edge}%;width:0"></div>
+      ${tl.map((t,i) => `<button class="rm-node ${t.status||"next"}" data-i="${i}" aria-pressed="false"><span class="rm-dot"><i></i></span><span class="rm-when">${esc(t.when)}</span><span class="rm-title">${esc(t.title)}</span></button>`).join("")}
+    </div>
+    <div id="rm-detail"></div>`;
+  box.querySelector(".rm-track").addEventListener("click", e => { const nd = e.target.closest(".rm-node"); if (nd) pickStep(tl, +nd.dataset.i); });
+  pickStep(tl, rmSel);
+}
+function pickStep(tl, i){
+  rmSel = i; const n = tl.length, t = tl[i];
+  document.querySelectorAll("#sheet-roadmap .rm-node").forEach(nd => nd.setAttribute("aria-pressed", +nd.dataset.i === i));
+  $("rm-fill").style.width = (i/n*100) + "%";
+  $("rm-detail").innerHTML = `<div class="rm-detail"><div class="top"><b>${esc(t.when)}: ${esc(t.title)}</b><span class="st ${t.status||"next"}">${ST_LABEL[t.status]||"Planned"}</span></div><p>${esc(t.detail)}</p></div>`;
 }
 function openBooth(i, from){
   sheetIdx = i; sheetReturn = from || null;
