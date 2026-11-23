@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Commitment Tree · SPS-YRSG Corporate Advance 2027</title>
+<meta name="theme-color" content="#060B1C">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#060B1C; --panel:rgba(16,28,60,.78); --edge:rgba(130,170,255,.18); --edge-2:rgba(130,170,255,.30);
+    --text:#EAF0FF; --muted:#A3B0D3; --cyan:#3FE0D0; --blue:#5B86FF; --pink:#FF8FC4; --violet:#B79BFF;
+    --display:"Sora","Segoe UI",system-ui,sans-serif; --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{font-size:clamp(15.5px,4.1vw,17px);background:var(--bg);-webkit-text-size-adjust:100%}
+  body{margin:0;color:var(--text);font:400 1rem/1.55 var(--body);
+    background:radial-gradient(60rem 40rem at 50% 20%,rgba(91,134,255,.14),transparent 60%),radial-gradient(40rem 30rem at 50% 100%,rgba(63,224,208,.10),transparent 60%),var(--bg);
+    background-attachment:fixed;min-height:100vh}
+  button,textarea{font:inherit;color:inherit}
+  :focus-visible{outline:3px solid var(--cyan);outline-offset:3px;border-radius:8px}
+  .wrap{max-width:760px;margin:0 auto;padding:0 1.2rem}
+  [hidden]{display:none !important}
+
+  .top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 0 .4rem}
+  .back{display:inline-flex;align-items:center;gap:.4rem;color:var(--muted);text-decoration:none;font:600 .92rem/1 var(--display);
+    border:1.5px solid var(--edge-2);border-radius:10px;padding:.6rem .85rem;min-height:2.75rem}
+  .back:hover{color:var(--cyan);border-color:var(--cyan)}
+  .back svg{width:1rem;height:1rem}
+  .event{font:500 .82rem/1.3 var(--display);color:var(--muted);text-align:right}
+
+  .kicker{font:500 .95rem/1.3 var(--display);color:var(--cyan);margin:1rem 0 0;display:flex;align-items:center;gap:.5rem}
+  .kicker::before{content:"";width:1.6rem;height:2px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+  h1{font:700 clamp(2rem,8vw,3rem)/1.05 var(--display);letter-spacing:-.03em;margin:.45rem 0 .6rem;
+    background:linear-gradient(180deg,#fff 30%,#B9CCFF);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{color:var(--muted);margin:0;max-width:34rem}
+
+  /* tree stage */
+  .stage{position:relative;margin:1.4rem 0 0;border-radius:18px;overflow:hidden;border:1px solid var(--edge-2);
+    background:#050A1E;
+    box-shadow:inset 0 0 60px rgba(63,224,208,.08)}
+  .stage::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.22;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 4px)}
+  #tree{display:block;width:100%;height:min(76vh,640px,125vw);touch-action:manipulation;cursor:pointer}
+  .count{position:absolute;left:1rem;top:.9rem;z-index:2}
+  .count b{display:block;font:800 2rem/1 var(--display);color:#fff;text-shadow:0 0 18px rgba(63,224,208,.7)}
+  .count span{font:500 .82rem/1.3 var(--display);color:var(--muted)}
+  .stage-hint{position:absolute;right:1rem;top:1rem;z-index:2;font-size:.82rem;color:var(--muted)}
+  .peek{position:absolute;left:50%;bottom:1rem;transform:translateX(-50%);z-index:3;width:min(92%,26rem);
+    background:rgba(6,11,28,.92);border:1.5px solid var(--pink);border-radius:14px;padding:.85rem 1rem;
+    box-shadow:0 0 30px -10px var(--pink);animation:pop .3s cubic-bezier(.2,.8,.2,1)}
+  .peek small{display:block;font:600 .78rem/1 var(--display);color:var(--pink);margin-bottom:.35rem}
+  .peek p{margin:0;font:500 1rem/1.45 var(--display)}
+  @keyframes pop{from{opacity:0;transform:translate(-50%,8px)}}
+
+  .pop{position:absolute;z-index:4;width:max-content;max-width:min(17rem,72vw);padding:.6rem .85rem;border-radius:12px;pointer-events:none;
+    background:rgba(6,11,28,.86);border:1.5px solid var(--pc,#FF8FC4);box-shadow:0 0 26px -8px var(--pc,#FF8FC4);
+    font:500 .95rem/1.4 var(--display);color:#F4F7FF;transform:translate(-50%,calc(-100% - 14px)) scale(.9);opacity:0;
+    transition:opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1)}
+  .pop.on{opacity:1;transform:translate(-50%,calc(-100% - 22px)) scale(1)}
+  .pop::after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;margin-left:-6px;background:rgba(6,11,28,.86);
+    border-right:1.5px solid var(--pc,#FF8FC4);border-bottom:1.5px solid var(--pc,#FF8FC4);transform:rotate(45deg)}
+  body.screen .pop{font-size:1.25rem;max-width:26rem;padding:.8rem 1.1rem}
+  .thanks{position:absolute;left:0;right:0;top:46%;z-index:5;text-align:center;pointer-events:none;padding:0 1rem;
+    font:800 clamp(1.6rem,6vw,3.6rem)/1.15 var(--display);letter-spacing:-.02em;color:#fff;
+    text-shadow:0 0 18px rgba(255,170,215,.9),0 0 42px rgba(63,224,208,.6);opacity:0;transform:scale(.92);transition:opacity 1.6s ease, transform 1.6s ease}
+  .thanks.on{opacity:1;transform:scale(1)}
+  .thanks small{display:block;font:600 clamp(.9rem,2.4vw,1.4rem)/1.4 var(--display);color:#FFE3F1;margin-top:.4rem;letter-spacing:0}
+  .progress{display:flex;align-items:center;gap:.8rem;margin-top:.9rem;font:600 .88rem/1 var(--display);color:var(--muted)}
+  .bar{flex:1;height:8px;border-radius:8px;background:rgba(255,255,255,.07);overflow:hidden}
+  .bar span{display:block;height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,var(--cyan),var(--violet),var(--pink));box-shadow:0 0 12px rgba(255,143,196,.6);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+
+  /* pledge form */
+  .card{margin:1.6rem 0 0;background:var(--panel);border:1px solid var(--edge);border-radius:16px;padding:1.15rem 1.2rem}
+  .card h2{font:600 1.2rem/1.3 var(--display);margin:0 0 .3rem}
+  .card .sub{color:var(--muted);font-size:.93rem;margin:0 0 .9rem}
+  .starters{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.8rem}
+  .starters button{border:1.5px solid var(--edge-2);background:rgba(255,255,255,.03);border-radius:2rem;padding:.5rem .85rem;cursor:pointer;font:500 .88rem/1.2 var(--display);min-height:2.6rem}
+  .starters button:hover{border-color:var(--cyan);color:var(--cyan)}
+  textarea{width:100%;min-height:6rem;resize:vertical;border-radius:12px;border:1.5px solid var(--edge-2);background:rgba(3,7,20,.6);
+    padding:.85rem .95rem;font:500 1.02rem/1.5 var(--body);color:var(--text)}
+  textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(63,224,208,.2)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:.75rem;flex-wrap:wrap}
+  .chars{font-size:.85rem;color:var(--muted)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:3rem;padding:.7rem 1.3rem;border-radius:10px;border:0;cursor:pointer;
+    font:600 1rem/1.2 var(--display);background:linear-gradient(90deg,var(--cyan),#7FE8FF);color:#031A1C;box-shadow:0 0 24px -8px var(--cyan)}
+  .btn:disabled{background:rgba(255,255,255,.08);color:#7C88AA;box-shadow:none;cursor:not-allowed}
+  .btn svg{width:1.1rem;height:1.1rem}
+  .msg{margin-top:.8rem;font:500 .95rem/1.4 var(--display);color:var(--pink);min-height:1.4em}
+  .note{color:#7C88AA;font-size:.82rem;margin:.9rem 0 0}
+
+  /* recent pledges */
+  .recent{list-style:none;margin:0;padding:0;display:grid;gap:.55rem}
+  .recent li{border-left:3px solid var(--pink);background:rgba(255,255,255,.03);border-radius:0 10px 10px 0;padding:.6rem .85rem;font-size:.95rem}
+  .recent li.mine{border-left-color:var(--cyan)}
+  .recent li.empty-li{border-left-color:var(--edge-2);color:var(--muted)}
+  footer{color:#7A88AE;font-size:.85rem;text-align:center;padding:2rem 0 2.5rem}
+
+  .demo{display:inline-flex;align-items:center;gap:.4rem;font:600 .75rem/1 var(--display);color:#FFC874;background:rgba(244,169,58,.16);padding:.35rem .6rem;border-radius:2rem;margin-top:.8rem}
+
+  /* big screen mode: ?screen */
+  body.screen .form-area,body.screen .recent-area,body.screen .top .back,body.screen footer,body.screen .lede{display:none}
+  body.screen .wrap{max-width:1500px}
+  body.screen #tree{height:86vh}
+  body.screen .stage{margin-top:.8rem}
+  body.screen #stage-label{visibility:hidden}
+  body.screen h1{display:none}
+  body.screen .kicker{display:none}
+  body.screen h1{font-size:3.2rem}
+  body.screen .ticker{display:block}
+  .ticker{display:none;margin-top:1rem;text-align:center;font:600 1.6rem/1.4 var(--display);min-height:2.4em;color:#fff;transition:opacity .5s}
+  .ticker small{display:block;font:500 1rem/1.3 var(--display);color:var(--cyan)}
+
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Event guide</a>
+    <div class="event">SPS-YRSG Corporate Advance 2027</div>
+  </div>
+
+  <p class="kicker">Community pledge</p>
+  <h1>Our Commitment Tree</h1>
+  <p class="lede">Each pledge lights up more leaves. Fill the whole tree to reveal the message above it. Tap your flowers to read them again.</p>
+
+  <div class="stage">
+    <canvas id="tree" aria-label="Commitment tree. Each blossom is a pledge." role="img"></canvas>
+    <div class="thanks" id="thanks" aria-live="polite">Thank you for all the commitment pledges<small>SPS-YRSG Corporate Advance 2027</small></div>
+    <div class="peek" id="peek" hidden aria-live="polite"><small>A pledge</small><p id="peek-text"></p></div>
+  </div>
+  <div class="progress"><span id="stage-label">0 pledges</span><div class="bar"><span id="bar"></span></div><span id="goal-label"></span></div>
+
+  <section class="card form-area" aria-labelledby="h-pledge">
+    <h2 id="h-pledge">Make your pledge</h2>
+    <p class="sub">One sentence is enough. Tap a starter or write your own.</p>
+    <div class="starters" id="starters"></div>
+    <label for="pledge" class="sub" style="display:block;margin:0 0 .4rem">Your pledge</label>
+    <textarea id="pledge" maxlength="140" placeholder="I pledge to…"></textarea>
+    <div class="row">
+      <span class="chars" id="chars">0 / 140</span>
+      <button class="btn" id="submit" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c-4 0-6-3-6-7 4 0 6 3 6 7zM12 13c4 0 6-3 6-7-4 0-6 3-6 7z"/></svg>Add my pledge</button>
+    </div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <p class="note">Your pledges stay on your screen only. Nothing you type is saved or sent anywhere, and it clears when you leave this page.</p>
+  </section>
+
+  <section class="card recent-area" aria-labelledby="h-recent">
+    <h2 id="h-recent">Your pledges</h2>
+    <ul class="recent" id="recent"><li class="empty-li">Your pledges will appear here.</li></ul>
+  </section>
+
+  <footer>SPS-YRSG Corporate Advance 2027 · Corrections in the Age of AI</footer>
+</div>
+
+<script>
+/* ============================ EDIT HERE ============================ */
+const STARTERS = ["I pledge to…", "I will support my team by…", "I commit to learning…", "I will help someone on their journey by…"];
+const GOAL = 5;                                            // pledges needed to light the whole tree on one phone
+const SCREEN_GOAL = 30;                                    // on the big screen (?screen) the sprite plants by itself; about 2.5 minutes to full bloom
+                                                           // (each pledge lights more leaves; the tree holds 600+ flowers, so 200+ pledges fit)
+const THANK_YOU_SECONDS = 6;                              // how long the thank-you message stays before fading away
+/* Example pledges shown on the big screen (?screen), where no real pledges arrive. Edit or replace freely. */
+const SCREEN_PLEDGES = [
+  "I pledge to listen first and judge less.","I will mentor a new officer this year.","I commit to learning one new AI tool.",
+  "I will give second chances, not just second looks.","I pledge to look after my team's wellbeing.","I will share what I learn with others.",
+  "I commit to treating everyone with dignity.","I will speak up when something isn't right.","I pledge to keep improving how we work.",
+  "I will support reintegration in my community.","I commit to being a steady presence for my team.","I will thank someone every week.",
+  "I pledge to use AI responsibly.","I will check in on colleagues who are struggling.","I commit to working as one team with YRSG.",
+  "I will help families stay connected.","I pledge to celebrate small wins.","I will put people first."
+];
+const MESSAGE = ["SPS-YRSG", "CORPORATE ADVANCE 2027"];      // revealed behind the tree as it fills up
+/* =================================================================== */
+/* Nothing here is stored: pledges live only in this page's memory and disappear on refresh. */
+
+const $ = id => document.getElementById(id);
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SCREEN = new URLSearchParams(location.search).has("screen");
+if (SCREEN) document.body.classList.add("screen");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let seed = 20270420;
+const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+
+/* ---- a big 3D tree: thick trunk, roots, spreading limbs and a full, lavish crown ---- */
+const MAXD = 6, branches = [], leaves = [], spots = [];
+function grow(x, y, z, pitch, az, len, depth, w){
+  const dx = Math.sin(pitch)*Math.cos(az), dy = Math.cos(pitch), dz = Math.sin(pitch)*Math.sin(az);
+  // a gentle bend in each limb, so it looks grown rather than drawn with a ruler
+  const bend = depth > 1 ? (rnd()-.5)*.25 : 0;
+  const mx = x + dx*len*.5 + Math.cos(az+1.57)*len*bend, my = y + dy*len*.5, mz = z + dz*len*.5 + Math.sin(az+1.57)*len*bend;
+  const x2 = x + dx*len, y2 = y + dy*len, z2 = z + dz*len;
+  const w2 = w*(depth === 1 ? .62 : .66);
+  branches.push({x, y, z, mx, my, mz, x2, y2, z2, depth, w1: w, w2});
+  if (depth >= MAXD) return;
+  const kids = depth === 1 ? 5 : depth < 4 ? 3 : 2;
+  const base = rnd()*6.28;
+  for (let k=0;k<kids;k++){
+    const np = depth === 1 ? .85 + rnd()*.25 : Math.min(1.45, .45 + rnd()*.6 + depth*.1);
+    const na = (depth === 1 ? base : az) + (k/kids)*Math.PI*2 + (rnd()-.5)*.9;
+    grow(x2, y2, z2, np, na, len*(depth === 1 ? 1.08 : .78 + rnd()*.1), depth+1, w2*(.82 + rnd()*.12));
+  }
+}
+grow(0, 0, 0, 0, 0, 70, 1, 40);                              // the trunk: short and thick
+const roots = Array.from({length: 7}, (_,k) => ({a: k/7*6.28 + rnd()*.4, len: 26 + rnd()*20, w: 11 + rnd()*5}));
+// crown: soft clusters of leaves around every outer branch, so the canopy is full and round
+const tips = branches.filter(b => b.depth >= MAXD-2);
+tips.forEach(b => {
+  const n = b.depth === MAXD ? 5 : b.depth === MAXD-1 ? 3 : 2, rad = b.depth === MAXD ? 20 : 16;
+  for (let k=0;k<n;k++){
+    const u = rnd()*6.28, v = Math.acos(2*rnd()-1), r = rad*Math.cbrt(rnd());
+    leaves.push({x: b.x2 + r*Math.sin(v)*Math.cos(u), y: b.y2 + r*Math.cos(v) + 6, z: b.z2 + r*Math.sin(v)*Math.sin(u),
+      a: rnd()*6.28, s: .85 + rnd()*.6, lit: 0, at: 0, bloom: 0});
+  }
+});
+leaves.forEach((l,i) => { if (i % 2 === 0) spots.push({x: l.x, y: l.y, z: l.z, used: false}); });   // room for 600+ flowers
+let R = 0, TOP = 0; leaves.forEach(l => { R = Math.max(R, Math.hypot(l.x, l.z)); TOP = Math.max(TOP, l.y); });
+// shuffle leaves so they light up all around the canopy
+leaves.forEach((l,i) => l.o = (Math.sin(i*12.9898 + 4.1)*43758.5453) % 1 + 1);
+const COLORS = ["#FF8FC4","#B79BFF","#7FF2E6","#FFB3D9","#8FB8FF"];
+const LEAF_COLORS = ["#7FF2E6","#9FFFD6","#8FD8FF","#B6FFE9","#6FE3C4"];
+leaves.forEach((l,i) => l.c = LEAF_COLORS[i % LEAF_COLORS.length]);
+
+/* ---- sprites ---- */
+function flowerSprite(color){
+  const S = 96, c = document.createElement("canvas"); c.width = c.height = S; const g = c.getContext("2d"), m = S/2;
+  const gr = g.createRadialGradient(m,m,0,m,m,m); gr.addColorStop(0,color+"AA"); gr.addColorStop(.4,color+"33"); gr.addColorStop(1,color+"00");
+  g.fillStyle = gr; g.fillRect(0,0,S,S); g.translate(m,m); g.lineJoin = "round";
+  for (let k=0;k<6;k++){ g.save(); g.rotate(k*Math.PI/3);
+    g.beginPath(); g.moveTo(0,-5); g.lineTo(6,-15); g.lineTo(0,-27); g.lineTo(-6,-15); g.closePath();
+    g.fillStyle = color+"40"; g.fill(); g.strokeStyle = "#FFFFFFE0"; g.lineWidth = 1.5; g.stroke();
+    g.beginPath(); g.arc(0,-27,1.8,0,7); g.fillStyle = "#fff"; g.fill(); g.restore(); }
+  g.beginPath(); for (let k=0;k<6;k++){ const a = k*Math.PI/3 + Math.PI/6; g[k?"lineTo":"moveTo"](Math.cos(a)*6.5, Math.sin(a)*6.5); } g.closePath();
+  g.strokeStyle = "#fff"; g.lineWidth = 1.3; g.stroke(); g.beginPath(); g.arc(0,0,3,0,7); g.fillStyle = "#fff"; g.fill();
+  return c;
+}
+const SPR = {}; COLORS.forEach(c => SPR[c] = flowerSprite(c));
+let LEAF_ON = {}, LEAF_OFF = null;   // made after leafSprite is defined
+function leafSprite(color, lit){
+  const S = 48, c = document.createElement("canvas"); c.width = c.height = S; const g = c.getContext("2d"); g.translate(S/2, S/2);
+  if (lit){ const gr = g.createRadialGradient(0,0,0,0,0,S/2); gr.addColorStop(0,color+"77"); gr.addColorStop(1,color+"00"); g.fillStyle = gr; g.fillRect(-S/2,-S/2,S,S); }
+  leafPath(g, 15);
+  if (lit){ g.fillStyle = color + "E6"; g.fill(); g.strokeStyle = "#F2FFFD"; g.lineWidth = 1.3; g.stroke();
+    g.beginPath(); g.moveTo(0,-13); g.lineTo(0,10); g.strokeStyle = "#FFFFFFAA"; g.lineWidth = 1; g.stroke(); }
+  else { g.fillStyle = "rgba(120,170,220,.10)"; g.fill(); g.strokeStyle = "rgba(150,205,240,.55)"; g.lineWidth = 1.2; g.stroke(); }
+  return c;
+}
+function leafPath(g, s){ g.beginPath(); g.moveTo(0,-s); g.quadraticCurveTo(s*.62,-s*.15,0,s*.75); g.quadraticCurveTo(-s*.62,-s*.15,0,-s); }
+
+/* ---- canvas + projection ---- */
+const cv = $("tree"), ctx = cv.getContext("2d");
+let W=0, H=0, dpr = Math.min(SCREEN ? 1 : 2, devicePixelRatio||1), scale = 1, ox = 0, oy = 0, yaw = 0;
+let bg = null, bgBloom = null;
+function fit(){
+  W = cv.clientWidth; H = cv.clientHeight;
+  if (W < 60 || H < 120){ W = H = 0; return; }              // canvas not laid out yet (hidden or still loading): try again later
+  cv.width = W*dpr; cv.height = H*dpr;
+  const textH = H*(SCREEN ? .21 : .24);                        // room at the top for the message
+  scale = Math.max(.05, Math.min((W*.99)/(2*R), (H - textH - 24)/(TOP + 2)));
+  ox = W/2; oy = H - 30;
+  if (!LEAF_OFF){ LEAF_OFF = leafSprite("#000", false); LEAF_COLORS.forEach(c => LEAF_ON[c] = leafSprite(c, true)); }
+  bg = makeBackground(false); bgBloom = makeBackground(true);
+}
+/* night garden backdrop. With bloom=true: the same scene transformed, with a colourful sky, lit-up hills and a flowering meadow */
+function makeBackground(bloom){
+  const L = document.createElement("canvas"); L.width = W*dpr; L.height = H*dpr; const g = L.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
+  let sd = 7; const r = () => (sd = (sd*16807) % 2147483647) / 2147483647;
+  const sky = g.createLinearGradient(0,0,0,H);
+  if (bloom){ sky.addColorStop(0,"#160B3A"); sky.addColorStop(.35,"#3A1C6E"); sky.addColorStop(.62,"#7A3A8F"); sky.addColorStop(.8,"#E0729E"); sky.addColorStop(1,"#FFB38A"); }
+  else { sky.addColorStop(0,"#050A1E"); sky.addColorStop(.55,"#0B1A44"); sky.addColorStop(1,"#0E2A4A"); }
+  g.fillStyle = sky; g.fillRect(0,0,W,H);
+  const glows = bloom
+    ? [[W*.2,H*.3,W*.5,"rgba(63,224,208,.28)"],[W*.8,H*.25,W*.5,"rgba(255,143,196,.30)"],[W*.5,H*.7,W*.6,"rgba(255,210,140,.35)"]]
+    : [[W*.25,H*.34,W*.55,"rgba(63,224,208,.13)"],[W*.78,H*.28,W*.5,"rgba(183,155,255,.14)"],[W*.5,H*.5,W*.6,"rgba(91,134,255,.10)"]];
+  for (const [cx,cy,rx,col] of glows){ const a = g.createRadialGradient(cx,cy,0,cx,cy,rx); a.addColorStop(0,col); a.addColorStop(1,"rgba(0,0,0,0)"); g.fillStyle = a; g.fillRect(0,0,W,H); }
+  for (let i=0;i<W*H/(bloom ? 3800 : 2600);i++){ const x = r()*W, y = r()*H*(bloom ? .5 : .75), s = r()*1.2+.2; g.fillStyle = `rgba(255,240,255,${(.25+r()*.6).toFixed(2)})`; g.beginPath(); g.arc(x,y,s,0,7); g.fill(); }
+  // hills: dark wireframe at night, lit with colour after the bloom
+  const hillCols = bloom ? [["#5B3FA8","#2A1858","rgba(255,170,220,.9)"],["#2E8C93","#13404F","rgba(160,255,240,.95)"]]
+                         : [["rgba(14,30,70,.75)","rgba(6,14,32,.95)","rgba(91,134,255,.18)"],["rgba(10,40,60,.85)","rgba(6,14,32,.95)","rgba(63,224,208,.18)"]];
+  [[.72,.12],[.8,.09]].forEach(([base,amp],k) => {
+    g.beginPath(); g.moveTo(0,H);
+    for (let x=0;x<=W;x+=6){ const y = H*base - Math.sin(x/W*Math.PI*(2.2+k) + k)*H*amp*.6 - Math.sin(x/W*Math.PI*7 + k*2)*H*amp*.25; g.lineTo(x,y); }
+    g.lineTo(W,H); g.closePath();
+    const hg = g.createLinearGradient(0,H*(base-amp),0,H); hg.addColorStop(0,hillCols[k][0]); hg.addColorStop(1,hillCols[k][1]);
+    g.fillStyle = hg; g.fill();
+    if (bloom){ g.shadowColor = hillCols[k][2]; g.shadowBlur = 14; }
+    g.strokeStyle = hillCols[k][2]; g.lineWidth = bloom ? 2 : 1.2; g.stroke(); g.shadowBlur = 0;
+  });
+  // ground grid
+  g.strokeStyle = bloom ? "rgba(255,200,240,.18)" : "rgba(63,224,208,.10)"; g.lineWidth = 1;
+  for (let i=-12;i<=12;i++){ g.beginPath(); g.moveTo(W/2 + i*W*.02, H*.82); g.lineTo(W/2 + i*W*.16, H); g.stroke(); }
+  for (let k=0;k<6;k++){ const y = H*.82 + (H*.18)*Math.pow(k/6,1.6); g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke(); }
+  if (bloom){                                                  // a meadow of little glowing flowers on the ground
+    const cols = ["#FF8FC4","#B79BFF","#7FF2E6","#FFD27A","#8FB8FF"];
+    for (let i=0;i<W*H/1500;i++){
+      const y = H*.8 + Math.pow(r(),.8)*H*.2, x = r()*W, sz = 1.2 + (y - H*.8)/(H*.2)*3.2;
+      g.fillStyle = cols[i % cols.length]; g.globalAlpha = .55 + r()*.45;
+      for (let p=0;p<5;p++){ const a = p*1.2566; g.beginPath(); g.arc(x + Math.cos(a)*sz, y + Math.sin(a)*sz*.6, sz*.7, 0, 7); g.fill(); }
+      g.fillStyle = "#FFF6D8"; g.beginPath(); g.arc(x, y, sz*.45, 0, 7); g.fill();
+    }
+    g.globalAlpha = 1;
+  }
+  const mist = g.createLinearGradient(0,H*.7,0,H); mist.addColorStop(0,"rgba(0,0,0,0)"); mist.addColorStop(1, bloom ? "rgba(255,190,220,.18)" : "rgba(63,224,208,.14)");
+  g.fillStyle = mist; g.fillRect(0,H*.7,W,H*.3);
+  return L;
+}
+/* aurora ribbons that wave across the sky after the bloom */
+function drawAurora(now, k){
+  const bands = [["rgba(63,224,208,","rgba(127,242,230,"],["rgba(255,143,196,","rgba(255,190,225,"],["rgba(183,155,255,","rgba(210,195,255,"]];
+  bands.forEach(([c1,c2],i) => {
+    const y0 = H*(.12 + i*.09), amp = H*.05;
+    ctx.beginPath();
+    for (let x=0;x<=W;x+=12){ const y = y0 + Math.sin(x/W*6 + now/(3200+i*700) + i)*amp + Math.sin(x/W*13 - now/2400)*amp*.3; x ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }
+    for (let x=W;x>=0;x-=12){ const y = y0 + H*.07 + Math.sin(x/W*6 + now/(3200+i*700) + i + .4)*amp; ctx.lineTo(x,y); }
+    ctx.closePath();
+    const gr = ctx.createLinearGradient(0, y0 - amp, 0, y0 + H*.07 + amp);
+    gr.addColorStop(0, c2 + "0)"); gr.addColorStop(.5, c1 + (.28*k).toFixed(2) + ")"); gr.addColorStop(1, c2 + "0)");
+    ctx.fillStyle = gr; ctx.fill();
+  });
+}
+const fireflies = Array.from({length: 26}, () => ({x: Math.random(), y: .25 + Math.random()*.6, ph: Math.random()*6.28, sp: .3 + Math.random()*.5}));
+const petals = [];
+function P(x, y, z){ const c = Math.cos(yaw), s = Math.sin(yaw), xr = x*c - z*s, zr = x*s + z*c;
+  return [ox + xr*scale, oy - y*scale + zr*scale*.22, zr]; }   // zr > 0 = nearer the viewer
+
+/* ---- digital soil: a glowing disc of hex tiles with tiny sprouts ---- */
+const sprouts = Array.from({length: 46}, () => ({a: rnd()*6.28, r: .25 + rnd()*.75, h: 3 + rnd()*7, ph: rnd()*6.28}));
+function drawSoil(now){
+  const rx = Math.max(1, Math.min(W*.46, R*scale*.95)), ry = rx*.16;
+  const bk = celebrate ? Math.max(0, Math.min(1, (now - celebrate - 800)/3000)) : 0;
+  const gg = ctx.createRadialGradient(ox, oy, 0, ox, oy, rx); gg.addColorStop(0,"rgba(63,224,208,.38)"); gg.addColorStop(.7,"rgba(63,224,208,.10)"); gg.addColorStop(1,"rgba(63,224,208,0)");
+  ctx.fillStyle = gg; ctx.beginPath(); ctx.ellipse(ox, oy, rx, ry, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = "rgba(140,245,235,.28)"; ctx.lineWidth = 1;
+  for (let k=1;k<=4;k++){ ctx.beginPath(); ctx.ellipse(ox, oy, rx*k/4, ry*k/4, 0, 0, 7); ctx.stroke(); }
+  for (let k=0;k<12;k++){ const a = k*Math.PI/6 + yaw; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + Math.cos(a)*rx, oy + Math.sin(a)*ry); ctx.stroke(); }
+  ctx.strokeStyle = "rgba(140,245,235,.7)"; ctx.lineWidth = 1.4; ctx.setLineDash([4,6]);
+  ctx.beginPath(); ctx.ellipse(ox, oy, rx, ry, 0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  if (bk > 0){                                                // after the bloom, the soil becomes a glowing rainbow ring
+    const rg = ctx.createLinearGradient(ox - rx, 0, ox + rx, 0);
+    ["#7FF2E6","#8FB8FF","#B79BFF","#FF8FC4","#FFD27A","#7FF2E6"].forEach((c,i,a) => rg.addColorStop(i/(a.length-1), c));
+    ctx.globalAlpha = bk*.35; ctx.strokeStyle = rg; ctx.lineWidth = 9; ctx.beginPath(); ctx.ellipse(ox, oy, rx, ry, 0, 0, 7); ctx.stroke();
+    ctx.globalAlpha = bk; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(ox, oy, rx, ry, 0, 0, 7); ctx.stroke();
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(ox, oy, rx*.62, ry*.62, 0, 0, 7); ctx.stroke();
+    const inner = ctx.createRadialGradient(ox, oy, 0, ox, oy, rx); inner.addColorStop(0,"rgba(255,210,140,.35)"); inner.addColorStop(1,"rgba(255,143,196,0)");
+    ctx.fillStyle = inner; ctx.beginPath(); ctx.ellipse(ox, oy, rx, ry, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+  }
+  for (const sp of sprouts){                                   // little digital sprouts in the soil
+    const x = ox + Math.cos(sp.a + yaw)*rx*sp.r, y = oy + Math.sin(sp.a + yaw)*ry*sp.r, h = sp.h*(1 + .15*Math.sin(now/1400 + sp.ph));
+    ctx.strokeStyle = "rgba(159,255,214,.55)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y-h); ctx.stroke();
+    ctx.save(); ctx.translate(x, y-h); ctx.rotate(.6); leafPath(ctx, 3); ctx.fillStyle = "rgba(127,242,230,.55)"; ctx.fill(); ctx.restore();
+    if (bk > 0){ ctx.globalAlpha = bk; ctx.fillStyle = ["#FF8FC4","#FFD27A","#B79BFF"][Math.floor(sp.ph*10) % 3]; ctx.beginPath(); ctx.arc(x, y-h-2, 2.4, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
+  }
+}
+
+/* ---- message behind the tree: letters light up as the tree fills ---- */
+let lit = 0, celebrate = 0;
+// the message is drawn once into its own layer and only redrawn when more letters light up (keeps the big screen smooth)
+let msgCache = null, msgKey = "";
+function drawMessage(now, prog){
+  const rows = MESSAGE, total = rows.join("").replace(/\s/g,"").length;
+  const on = Math.round(prog*total*8)/8, key = `${W}x${H}:${on}`;
+  if (key !== msgKey && W && H){
+    msgKey = key;
+    msgCache = document.createElement("canvas"); msgCache.width = W*dpr; msgCache.height = H*.32*dpr;
+    const g = msgCache.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
+    const top = 18, maxW = W*.9;
+    const sizes = rows.map((r,i) => { g.font = `800 100px Sora, sans-serif`; return Math.min(i===0 ? H*.11 : H*.06, maxW / g.measureText(r).width * 100); });
+    let idx = 0, y = top; g.textBaseline = "top";
+    rows.forEach((r,i) => {
+      const z = sizes[i]; g.font = `800 ${z}px Sora, sans-serif`;
+      let x = W/2 - g.measureText(r).width/2;
+      for (const ch of r){
+        const cw = g.measureText(ch).width;
+        if (ch !== " "){
+          const k = Math.max(0, Math.min(1, on - idx)); idx++;
+          g.globalAlpha = 1; g.lineWidth = 1; g.strokeStyle = "rgba(160,190,240,.28)"; g.strokeText(ch, x, y);
+          if (k > 0){ g.globalAlpha = k; g.shadowColor = "#3FE0D0"; g.shadowBlur = 16; g.fillStyle = i===0 ? "#E9FFFC" : "#BFF6EF"; g.fillText(ch, x, y); g.shadowBlur = 0; }
+        }
+        x += cw;
+      }
+      y += z*1.25;
+    });
+  }
+  const pulse = celebrate && !REDUCED ? .9 + .1*Math.sin(now/600) : 1;
+  if (msgCache && msgCache.width && msgCache.height){ ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha = pulse; ctx.drawImage(msgCache, 0, 0); ctx.restore(); }
+}
+
+/* ---- the AI sprite (slow and floaty) ---- */
+const fairy = {x:0, y:0, vx:0, vy:0, carry:null, job:null};
+const trail = [], queue = [];
+let wanderT = {x:0,y:0}, wanderUntil = 0;
+function wanderPoint(){ const l = leaves[Math.floor(Math.random()*leaves.length)]; const [x,y] = P(l.x,l.y,l.z); return {x: Math.max(30, Math.min(W-30, x + (Math.random()-.5)*40)), y: Math.max(H*.25, y - 25)}; }
+function drawFairy(now){
+  const f = fairy, flap = Math.sin(now/140), tilt = Math.max(-.3, Math.min(.3, f.vx*.06)), FS = W < 600 ? 1.1 : 1.5;
+  ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(tilt); ctx.scale(FS, FS);
+  for (const side of [-1,1]){ ctx.save(); ctx.scale(side,1); ctx.rotate(-.35 - flap*.3);
+    ctx.beginPath(); ctx.ellipse(10,-6,11,5.5,-.5,0,7); ctx.fillStyle = "rgba(170,225,255,.30)"; ctx.fill(); ctx.strokeStyle = "rgba(127,242,230,.85)"; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(8,3,7,3.5,.4,0,7); ctx.fillStyle = "rgba(183,155,255,.28)"; ctx.fill(); ctx.stroke(); ctx.restore(); }
+  const gl = ctx.createRadialGradient(0,0,0,0,0,16); gl.addColorStop(0,"#fff"); gl.addColorStop(.3,"rgba(127,242,230,.9)"); gl.addColorStop(1,"rgba(63,224,208,0)");
+  ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0,0,16,0,7); ctx.fill();
+  ctx.rotate(now/1500); ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = 1;
+  ctx.beginPath(); for (let k=0;k<6;k++){ const a = k*Math.PI/3; ctx[k?"lineTo":"moveTo"](Math.cos(a)*9, Math.sin(a)*9); } ctx.closePath(); ctx.stroke();
+  ctx.restore();
+  if (f.carry){ const sz = W < 600 ? 24 : 34; ctx.drawImage(SPR[f.carry.c], f.x - sz/2, f.y + (W < 600 ? 14 : 20) - sz/2, sz, sz); }
+}
+function stepFairy(now, dt){
+  const f = fairy; let tx, ty, k = .00035;
+  if (!f.job && queue.length){ const p = queue.shift(); f.carry = p; f.job = {phase:"fetch", p, t0: now}; }
+  if (f.job){
+    const p = f.job.p, [sx,sy] = P(p.spot.x, p.spot.y, p.spot.z);
+    if (f.job.phase === "fetch"){ tx = W/2; ty = oy - 30; k = .0006; if (Math.hypot(tx-f.x, ty-f.y) < 14) f.job.phase = "carry"; }
+    else if (f.job.phase === "carry"){ tx = sx; ty = sy - 14; k = .0005;
+      if (Math.hypot(tx-f.x, ty-f.y) < 10){ f.job.phase = "place"; f.job.t0 = now; plant(p, now); f.carry = null; } }
+    else { tx = sx + 8; ty = sy - 26; if (now - f.job.t0 > 1200){ f.job = null; wanderUntil = 0; } }
+  }
+  if (!f.job){
+    if (now > wanderUntil){ wanderT = wanderPoint(); wanderUntil = now + 7000; }
+    tx = wanderT.x + Math.sin(now/1800)*12; ty = wanderT.y + Math.cos(now/1400)*8; k = .00015;
+    if (SCREEN && !queue.length && now - lastAuto > 5000 && prog() < 1) autoPlant();
+  }
+  f.vx += (tx - f.x)*k*dt; f.vy += (ty - f.y)*k*dt; f.vx *= .92; f.vy *= .92;
+  const sp = Math.hypot(f.vx, f.vy), MAX = W < 600 ? 2.2 : 3; if (sp > MAX){ f.vx *= MAX/sp; f.vy *= MAX/sp; }   // speed limit
+  f.x += f.vx; f.y += f.vy;
+  if (Math.random() < .35) trail.push({x: f.x + (Math.random()-.5)*6, y: f.y + (Math.random()-.5)*6, t: now, c: Math.random() < .5 ? "#7FF2E6" : "#B79BFF", r: Math.random()*1.4+.5});
+}
+function sparkle(x, y, c, n){ const now = performance.now(); for (let i=0;i<n;i++){ const a = Math.random()*6.28, v = Math.random()*1.4+.4; trail.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, t: now, c, r: Math.random()*1.8+.8, burst:true}); } }
+
+/* ---- pledge pop-ups: a card rises over the flower, then fades away ---- */
+const stageEl = document.querySelector(".stage");
+function popPledge(text, x, y, color){
+  if (!text) return;
+  const el = document.createElement("div"); el.className = "pop"; el.textContent = text; el.style.setProperty("--pc", color || "#FF8FC4");
+  const r = cv.getBoundingClientRect(), sr = stageEl.getBoundingClientRect();
+  const px = Math.max(r.width*.18, Math.min(r.width*.82, x)) + (r.left - sr.left), py = Math.max(110, y) + (r.top - sr.top);
+  el.style.left = px + "px"; el.style.top = py + "px";
+  stageEl.appendChild(el);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("on")));
+  setTimeout(() => el.classList.remove("on"), SCREEN ? 4200 : 3600);
+  setTimeout(() => el.remove(), SCREEN ? 5000 : 4400);
+}
+let lastPop = 0;
+function randomPop(now){                                      // after full bloom, pledges keep surfacing one at a time
+  const pool = SCREEN ? SCREEN_PLEDGES : pledges.filter(p => p.t).map(p => p.t);
+  if (!pool.length) return;
+  const l = leaves[Math.floor(Math.random()*leaves.length)], [x,y] = P(l.x,l.y,l.z);
+  popPledge(pool[Math.floor(Math.random()*pool.length)], x, y, l.bc);
+  lastPop = now;
+}
+function thankYou(){
+  const el = $("thanks"); el.classList.add("on");
+  setTimeout(() => el.classList.remove("on"), THANK_YOU_SECONDS*1000);
+}
+
+/* ---- pledges light up leaves ---- */
+let pledges = [], planted = 0, lastAuto = 0, highlight = -1;
+const prog = () => Math.min(1, planted / (SCREEN ? SCREEN_GOAL : GOAL));
+function plant(p, now){
+  p.born = now; planted++;
+  const [sx,sy] = P(p.spot.x, p.spot.y, p.spot.z); sparkle(sx, sy, p.c, 22);
+  popPledge(p.t, sx, sy, p.c);
+  // light the next share of leaves, nearest to the new flower first, in a gentle ripple
+  const want = Math.round(leaves.length * prog()), have = leaves.filter(l => l.lit).length;
+  leaves.filter(l => !l.lit).map(l => ({l, d: Math.hypot(l.x-p.spot.x, l.y-p.spot.y, l.z-p.spot.z)}))
+    .sort((a,b) => a.d - b.d).slice(0, Math.max(0, want - have)).forEach(({l,d},i) => { l.lit = 1; l.at = now + i*22; });
+  if (prog() >= 1 && !celebrate){ celebrate = now; leaves.forEach(l => { if (!l.lit){ l.lit = 1; l.at = now; } });
+    // a few seconds later the whole crown bursts into blossom, from the trunk outwards
+    leaves.forEach(l => { l.bloom = now + 900 + Math.hypot(l.x, l.y - TOP*.6, l.z)*9 + Math.random()*500; l.bc = COLORS[Math.floor(Math.random()*COLORS.length)]; });
+    setTimeout(() => { sparkle(W/2, H*.15, "#7FF2E6", 60); sparkle(W*.3, H*.12, "#FF8FC4", 40); sparkle(W*.7, H*.12, "#B79BFF", 40); }, 300);
+    $("msg").textContent = "The tree is in full bloom. Thank you for your pledges!";
+    setTimeout(thankYou, 3200); lastPop = now + 3200 + THANK_YOU_SECONDS*1000; }
+  refresh();
+}
+function newPledge(text){
+  const free = spots.filter(s => !s.used); const spot = free.length ? free[Math.floor(Math.random()*free.length)] : spots[Math.floor(Math.random()*spots.length)];
+  spot.used = true;
+  const p = {t: text, spot, c: COLORS[pledges.length % COLORS.length], born: 0};
+  pledges.push(p);
+  if (REDUCED){ plant(p, performance.now()); requestAnimationFrame(frame); } else queue.push(p);
+  return p;
+}
+let sp = 0;
+function autoPlant(){ lastAuto = performance.now(); newPledge(SCREEN_PLEDGES[sp++ % SCREEN_PLEDGES.length]); }
+
+/* ---- draw loop ---- */
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(50, now - last); last = now;
+  if (!W || !H || !bg){ fit(); requestAnimationFrame(frame); return; }   // wait until the canvas has a real size
+  yaw = REDUCED ? .35 : .35 + Math.sin(now/12000)*.35;         // slow, gentle turn so it feels 3D
+  ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(bg, 0, 0);
+  const bk = celebrate ? Math.max(0, Math.min(1, (now - celebrate - 800)/3000)) : 0;   // scene change after the bloom
+  if (bk > 0){ ctx.globalAlpha = bk; ctx.drawImage(bgBloom, 0, 0); ctx.globalAlpha = 1; }
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  if (bk > 0){
+    drawAurora(now, bk);
+    // a soft glow behind the crown makes the blossoming tree shine (cheap: one gradient)
+    const [cx, cy] = P(0, TOP*.75, 0), rr = Math.max(1, R*scale*1.15);
+    const gl = ctx.createRadialGradient(cx, cy, 0, cx, cy, rr);
+    gl.addColorStop(0, `rgba(255,235,245,${(.38*bk).toFixed(2)})`); gl.addColorStop(.45, `rgba(255,170,215,${(.18*bk).toFixed(2)})`); gl.addColorStop(1, "rgba(255,170,215,0)");
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.ellipse(cx, cy, rr, rr*.7, 0, 0, 7); ctx.fill();
+  }
+  for (const f of fireflies){                                  // fireflies drifting in the garden
+    const x = (f.x + Math.sin(now/4000*f.sp + f.ph)*.03)*W, y = (f.y + Math.cos(now/5200*f.sp + f.ph)*.03)*H, a = .3 + .3*Math.sin(now/600*f.sp + f.ph);
+    ctx.globalAlpha = Math.max(0,a); ctx.fillStyle = bk > 0 ? ["#FFD27A","#FF8FC4","#BFFFF3"][Math.floor(f.ph*3) % 3] : "#BFFFF3"; ctx.beginPath(); ctx.arc(x,y,1.6 + bk,0,7); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  drawMessage(now, celebrate ? 1 : prog());
+  drawSoil(now);
+  // roots spreading into the soil
+  ctx.lineCap = "round";
+  for (const r of roots){
+    const [x1,y1] = P(0,2,0), [x2,y2] = P(Math.cos(r.a + yaw*0)*r.len, -3, Math.sin(r.a)*r.len);
+    ctx.globalAlpha = .55; ctx.strokeStyle = "#3FE0D0"; ctx.lineWidth = r.w*scale*.5;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.quadraticCurveTo((x1+x2)/2, y1, x2, y2); ctx.stroke();
+    ctx.globalAlpha = .9; ctx.strokeStyle = "#9CEFE3"; ctx.lineWidth = Math.max(1, r.w*scale*.16);
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.quadraticCurveTo((x1+x2)/2, y1, x2, y2); ctx.stroke();
+  }
+  const items = [];
+  for (const b of branches){ const A = P(b.x,b.y,b.z), M = P(b.mx,b.my,b.mz), B = P(b.x2,b.y2,b.z2); items.push({type:0, z:(A[2]+B[2])/2, A, M, B, b}); }
+  for (const l of leaves){ const [x,y,z] = P(l.x,l.y,l.z); items.push({type:1, z, x, y, l}); }
+  pledges.forEach((p,i) => { if (!p.born) return; const [x,y,z] = P(p.spot.x,p.spot.y,p.spot.z); items.push({type:2, z: z+1, x, y, p, i}); });
+  items.sort((a,b) => a.z - b.z);
+  const LS = (W < 600 ? 15 : 26);                              // leaf size on screen
+  for (const it of items){
+    const near = Math.max(0, Math.min(1, (it.z + R)/(2*R))), fade = .5 + .5*near;
+    if (it.type === 0){
+      // tapered, curved limb: a filled shape from thick to thin, with a soft glow and a bright core line
+      const b = it.b, w1 = b.w1*scale*.5, w2 = b.w2*scale*.5, [ax,ay] = it.A, [mx,my] = it.M, [bx,by] = it.B;
+      const ang = Math.atan2(by-ay, bx-ax), nx = -Math.sin(ang), ny = Math.cos(ang), wm = (w1+w2)/2;
+      ctx.beginPath();
+      ctx.moveTo(ax+nx*w1, ay+ny*w1); ctx.quadraticCurveTo(mx+nx*wm, my+ny*wm, bx+nx*w2, by+ny*w2);
+      ctx.lineTo(bx-nx*w2, by-ny*w2); ctx.quadraticCurveTo(mx-nx*wm, my-ny*wm, ax-nx*w1, ay-ny*w1); ctx.closePath();
+      const t = b.depth/MAXD;
+      const lv = Math.round(150 + 70*t);
+      const gr = `rgba(${Math.round(60+60*t + 40*bk)},${lv},${Math.min(255, lv+12)},${(.92*fade).toFixed(2)})`;
+      ctx.globalAlpha = 1; ctx.fillStyle = gr; ctx.fill(); ctx.shadowBlur = 0;
+      ctx.globalAlpha = fade*.5; ctx.strokeStyle = "#BFFFF8"; ctx.lineWidth = Math.max(1, (w1+w2)*.18); ctx.beginPath(); ctx.moveTo(ax,ay); ctx.quadraticCurveTo(mx,my,bx,by); ctx.stroke();
+      ctx.globalAlpha = fade*.8; ctx.strokeStyle = "rgba(180,255,245,.55)"; ctx.lineWidth = 1; ctx.stroke();
+      if (b.depth <= 2){                                       // circuit lines running up the trunk
+        ctx.globalAlpha = fade*.5; ctx.strokeStyle = "#BFFFF8"; ctx.lineWidth = 1;
+        for (const o of [-.45,0,.45]){ ctx.beginPath(); ctx.moveTo(ax+nx*w1*o, ay+ny*w1*o); ctx.quadraticCurveTo(mx+nx*wm*o, my+ny*wm*o, bx+nx*w2*o, by+ny*w2*o); ctx.stroke(); }
+      }
+    } else if (it.type === 1){
+      const l = it.l, k = l.lit ? Math.max(0, Math.min(1, (now - l.at)/600)) : 0;
+      const sw = REDUCED ? 0 : Math.sin(now/2400 + l.a)*.14;
+      const bl = l.bloom && now > l.bloom ? Math.min(1, (now - l.bloom)/700) : 0;
+      const ang = l.a + sw + (bl > 0 ? now/14000 : 0), ca = Math.cos(ang)*dpr, sa = Math.sin(ang)*dpr;
+      ctx.setTransform(ca, sa, -sa, ca, it.x*dpr, it.y*dpr);   // faster than save/translate/rotate/restore
+      if (bl < 1){
+        const sz = LS*l.s*(1 - bl*.6);
+        if (k < 1){ ctx.globalAlpha = fade*.9*(1-bl); ctx.drawImage(LEAF_OFF, -sz/2, -sz/2, sz, sz); }
+        if (k > 0){ ctx.globalAlpha = fade*k*(1-bl); ctx.drawImage(LEAF_ON[l.c], -sz/2, -sz/2, sz, sz); }
+      }
+      if (bl > 0){                                             // the leaf bursts open into a blossom
+        if (!l.burst){ l.burst = 1; sparkle(it.x, it.y, l.bc, 4); if (Math.random() < .25) petals.push({x: it.x, y: it.y, vx: (Math.random()-.5)*1.2, vy: -Math.random()*.6, c: l.bc, a: Math.random()*6.28, va: (Math.random()-.5)*.05, t: now}); }
+        const pop = bl < 1 ? 1 + Math.sin(bl*Math.PI)*.5 : 1 + (REDUCED ? 0 : .06*Math.sin(now/700 + l.a));
+        const sz = LS*1.35*l.s*bl*pop;
+        ctx.globalAlpha = fade*bl; ctx.drawImage(SPR[l.bc], -sz/2, -sz/2, sz, sz);
+      }
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    } else {
+      const p = it.p, open = 1 - Math.pow(1 - Math.min(1, (now - p.born)/900), 3);
+      let sz = (W < 600 ? 28 : 42)*(pledges.length > 60 ? .7 : 1)*open*(it.i === highlight ? 1.5 : 1);
+      if (sz < 1) continue;
+      ctx.globalAlpha = fade; ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(now/12000 + it.i); ctx.drawImage(SPR[p.c], -sz/2, -sz/2, sz, sz); ctx.restore();
+    }
+  }
+  // after full bloom, petals keep drifting down gently
+  if (celebrate && !REDUCED && petals.length < 160 && Math.random() < .35){
+    const l = leaves[Math.floor(Math.random()*leaves.length)], [x,y] = P(l.x,l.y,l.z);
+    petals.push({x, y, vx: (Math.random()-.5)*.5, vy: .2, c: l.bc || "#FF8FC4", a: Math.random()*6.28, va: (Math.random()-.5)*.03, t: now});
+  }
+  for (let i=petals.length-1;i>=0;i--){
+    const p = petals[i]; p.vy = Math.min(.9, p.vy + .006); p.vx += Math.sin(now/900 + i)*.006; p.x += p.vx; p.y += p.vy; p.a += p.va;
+    if (p.y > H - 8){ petals.splice(i,1); continue; }
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.globalAlpha = .85; ctx.fillStyle = p.c;
+    ctx.beginPath(); ctx.ellipse(0,0, W < 600 ? 2.6 : 3.6, W < 600 ? 1.5 : 2, 0, 0, 7); ctx.fill(); ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  if (!REDUCED) stepFairy(now, dt);
+  for (let i=trail.length-1;i>=0;i--){ const p = trail[i], age = (now - p.t)/(p.burst ? 1100 : 800);
+    if (age >= 1){ trail.splice(i,1); continue; }
+    if (p.burst){ p.x += p.vx; p.y += p.vy; p.vx *= .95; p.vy *= .95; } else p.y += .15;
+    ctx.globalAlpha = 1 - age; ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r*(1-age*.5), 0, 7); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  if (!REDUCED) drawFairy(now);
+  if (celebrate && now - lastPop > (SCREEN ? 4500 : 5500)) randomPop(now);
+  if (!REDUCED) requestAnimationFrame(frame);
+}
+
+/* ---- UI ---- */
+function refresh(){
+  const mine = pledges.filter(p => p.t);
+  $("stage-label").textContent = mine.length === 1 ? "1 pledge" : `${mine.length} pledges`;
+  $("bar").style.width = (prog()*100) + "%";
+  $("goal-label").textContent = prog() >= 1 ? "Full bloom" : `${Math.round(prog()*100)}% lit`;
+  $("recent").innerHTML = mine.length ? mine.slice().reverse().map(p => `<li class="mine">${esc(p.t)}</li>`).join("") : `<li class="empty-li">Your pledges will appear here.</li>`;
+}
+$("starters").innerHTML = STARTERS.map(s => `<button type="button">${esc(s)}</button>`).join("");
+$("starters").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+  const ta = $("pledge"); ta.value = b.textContent.replace(/…$/, " "); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); onInput(); });
+function onInput(){ const v = $("pledge").value; $("chars").textContent = `${v.length} / 140`; $("submit").disabled = v.trim().replace(/…$/,"").length < 8; }
+$("pledge").addEventListener("input", onInput);
+$("submit").addEventListener("click", () => {
+  const t = $("pledge").value.trim().replace(/\s+/g," "); if (t.length < 8) return;
+  const p = newPledge(t);
+  $("pledge").value = ""; onInput(); refresh();
+  if (prog() < 1) $("msg").textContent = "Thank you. Watch the sprite plant your flower and light up the leaves.";
+  highlight = pledges.indexOf(p); setTimeout(() => { highlight = -1; }, 6000);
+  document.querySelector(".stage").scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block:"center"});
+});
+cv.addEventListener("click", e => {
+  const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+  let best = -1, bd = 28*28;
+  pledges.forEach((p,i) => { if (!p.t || !p.born) return; const [x,y] = P(p.spot.x,p.spot.y,p.spot.z); const d = (x-mx)**2 + (y-my)**2; if (d < bd){ bd = d; best = i; } });
+  if (best < 0){ $("peek").hidden = true; highlight = -1; return; }
+  highlight = best; $("peek-text").textContent = pledges[best].t; $("peek").querySelector("small").textContent = "Your pledge"; $("peek").hidden = false;
+  clearTimeout(cv._t); cv._t = setTimeout(() => { $("peek").hidden = true; highlight = -1; }, 6000);
+  if (REDUCED) requestAnimationFrame(frame);
+});
+
+if (window.ResizeObserver) new ResizeObserver(() => { const w = cv.clientWidth, h = cv.clientHeight; if (w !== W || h !== H) fit(); }).observe(cv);
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { fit(); if (REDUCED) requestAnimationFrame(frame); }, 120); });
+fit(); refresh();
+fairy.x = W*.8; fairy.y = H*.45;
+
+(document.fonts && document.fonts.load ? Promise.race([document.fonts.load('800 40px "Sora"'), new Promise(r => setTimeout(r, 2000))]) : Promise.resolve()).then(() => requestAnimationFrame(frame));
+</script>
+</body>
+</html>
